@@ -1,79 +1,262 @@
-Smart Certificate Generator (JTTC & BEF)
+# JTTC Certificate Generator
 
-A standalone, client-side web application designed to generate, track, and print professional training certificates for Janata Technical Training Institute (JTTC) and Bangladesh Electrician Federation (BEF).
+A professional, standalone certificate generation and printing application for the **Janata Technical Training Institute (JTTC)** and **Bangladesh Electrician Federation (BEF)**.
 
-🚀 Features
+## Overview
 
-Smart Serial Numbers: Automatically increments the Serial Number (SL No: 001, 002, etc.) every time a certificate is printed.
+This is a single-file HTML application that allows institutions to create, manage, and print professional training certificates with built-in verification through QR codes. No backend server or installation required—just open the HTML file in your browser.
 
-Print Logging System: Tracks every printed certificate in the browser's memory. You can download the full history as a .txt log file.
+## Features
 
-Dynamic QR Code: Generates a scannable QR code linking to online verification (e.g., a Google Doc or Website).
+✨ **Core Functionality**
+- 📄 Professional A4 landscape certificate template
+- 🎓 Dynamic student information capture (name, guardian, NID, address)
+- 📚 Multi-row training details tracking (date, topic, outcome, duration)
+- 🖨️ Optimized print layout with hidden controls
+- ➕ Add/remove training rows on the fly
+- 🔢 Auto-incrementing serial numbering system
 
-Auto-Fill Logic: Automatically fills the "Duration" field based on the selected Course Topic to prevent errors.
+🔐 **Data Management**
+- 💾 Browser-based persistent storage (localStorage)
+- 📊 Print history log with timestamp tracking
+- 📥 Download log as text file (.txt)
+- 🔄 Reset functionality for serial numbers
+- 🛡️ No data leaves your device (100% private)
 
-Print-Perfect Layout: Custom CSS ensures the certificate prints perfectly on A4 Landscape paper, hiding all buttons and control panels automatically.
+🎯 **Smart Features**
+- 🔗 QR code generation for certificate verification
+- 🎯 Auto-fill duration based on course selection
+- 📋 Datalist suggestions for consistent data entry
+- ⌨️ Ctrl+P keyboard shortcut support
+- 📱 Responsive design elements
+- 🌐 Professional branding with logo support
 
-Single-File Architecture: The entire app runs from a single .html file. No database or server installation required.
+## Quick Start
 
-🛠️ How to Use
+### 1. **Open the File**
+Simply open `JTTC Certificate Generator_v1.0.html` in any modern web browser:
+- Windows: Double-click the file
+- Mac/Linux: Right-click → Open with → Browser of choice
 
-Open the App: Double-click the Smart_Certificate_App.html file to open it in any modern web browser (Google Chrome, Edge, Firefox).
+### 2. **Fill in Certificate Details**
 
-Fill Details: Enter the Student Name, Guardian's Name, NID, and Address.
+#### Student Information Section:
+- **Student Name**: Full name of trainee
+- **Guardian's Name**: Parent/guardian information
+- **NID**: National Identification Number
+- **Address**: Residential address
 
-Select Course: Choose the training topic from the dropdown menu. The duration will fill automatically.
+#### Training Details Table:
+- **Date**: Course completion date (date picker)
+- **Topic**: Course name (dropdown with suggestions)
+- **Outcome**: Competency level achieved (Level 1 or Level 2)
+- **Duration**: Total training hours (e.g., "360 Hours")
 
-Print: Click the green "🖨️ Print Certificate" button.
+### 3. **Print Certificate**
+- Click **"🖨️ Print Certificate"** button
+- Certificate serial number auto-increments
+- Print dialog opens
+- Print to paper or PDF
 
-Note: The Serial Number will increment automatically before the print dialog opens.
+### 4. **Manage Records**
+- **📜 Download Log (.txt)**: Export all printed certificates as text file
+- **⚠️ Reset Log**: Clear history and reset serial numbers to 001
 
-Manage Logs:
+## Technical Details
 
-Click "📜 Download Log" to save a record of all printed certificates.
+### Technology Stack
+- **HTML5** - Semantic markup
+- **CSS3** - Modern styling and print optimization
+- **Vanilla JavaScript** - No dependencies required
+- **QRCode.js** - QR code generation library (CDN)
+- **localStorage API** - Client-side data persistence
 
-Click "⚠️ Reset Log" if you need to clear the history and start the Serial Number back at 001.
+### Browser Compatibility
+| Browser | Support |
+|---------|---------|
+| Chrome/Edge | ✅ Full |
+| Firefox | ✅ Full |
+| Safari | ✅ Full |
+| Opera | ✅ Full |
+| IE 11 | ⚠️ Limited |
 
-⚙️ Configuration & Customization
-
-Since this is a single-file app, all configuration is done by editing the code directly.
-
-1. Changing Logos
-
-To update the logos, convert your images to Base64 strings (using a tool like base64-image.de) and paste them into the <img> tags in the HTML:
-
-<!-- Search for this line in the code -->
-<img src="YOUR_BASE64_STRING_HERE" class="logo-static" alt="JTTC Logo">
-
-
-2. Changing the QR Code Link
-
-To change where the QR code points (e.g., to a new Google Doc or website), edit the qrContent variable in the script section:
-
-// Line ~350 in the code
-const qrContent = "[https://docs.google.com/document/d/your-new-link-here](https://docs.google.com/document/d/your-new-link-here)";
-
-
-3. Adding/Editing Courses
-
-To add new courses or change durations, edit the topicDatabase object:
+### File Structure
 ```
+JTTC Certificate Generator_v1.0.html
+├── HTML Structure
+│   ├── Control Panel (buttons)
+│   ├── Certificate Template (A4 landscape)
+│   ├── Header (org names, title, registration)
+│   ├── Student Form
+│   ├── Training Table
+│   └── Signatures Section + QR Code
+├── CSS Styling
+│   ├── Root variables (colors, fonts)
+│   ├── Layout and responsive design
+│   ├── Print media queries
+│   └── Component styles
+└── JavaScript Logic
+    ├── Data management (localStorage)
+    ├── Form handling
+    ├── QR code generation
+    ├── Serial numbering
+    └── Print/export functions
+```
+
+### Key JavaScript Functions
+
+| Function | Purpose |
+|----------|---------|
+| `handlePrint()` | Captures data, increments serial, saves log, triggers print |
+| `saveLog(entry, count)` | Stores certificate record in localStorage |
+| `downloadLog()` | Exports all records as text file |
+| `clearLog()` | Resets storage and serial number |
+| `generateQR()` | Creates QR code from verification link |
+| `addRow()` | Adds new training detail row |
+| `deleteRow()` | Removes training row |
+| `autoFillDetails()` | Auto-populates duration based on course |
+
+## Customization
+
+### Change Logo/Images
+1. Open the HTML file in a text editor
+2. Locate the `<img>` tags with `class="logo-static"`
+3. Replace the `src` attribute with your Base64 encoded image or URL
+
+### Modify Course Topics
+Find this section in the JavaScript:
+```javascript
 const topicDatabase = {
-    "New Course Name Here": { 
-        duration: "400 Hours" 
-    },
-    // ... existing courses
+  "Electrical Installation and Maintenance": {
+    duration: "360 Hours",
+  },
+  // Add more courses here
 };
 ```
 
-⚠️ Important Note on Data Storage
+### Adjust Colors
+Edit CSS variables at the top of the `<style>` section:
+```css
+:root {
+  --primary-green: #006a4e;  /* Change this */
+  --accent-red: #f42a41;     /* And this */
+  --cursive-font: "Cinzel", serif;
+  --body-font: "Lato", sans-serif;
+}
+```
 
-This application uses Local Storage (browser memory) to save the Serial Number and Logs.
+### Change QR Link
+Update this in the JavaScript:
+```javascript
+const qrContent = `https://your-verification-url.com`;
+```
 
-Data is Local: If you open the file on a different computer, the Serial Number will start from 001 again.
+## Data Storage
 
-Clearing Cache: If you clear your browser's "Cookies and Site Data", the logs and serial counter will be wiped. Always download your log file regularly.
+### What Gets Saved?
+Your local browser's `localStorage` stores:
 
-📄 License
+1. **Counter**: Serial number sequence
+2. **Logs**: Certificate print history with:
+   - Serial number
+   - Print timestamp
+   - Student details
+   - Training information
 
-This project is for internal use by JTTC & BEF.
+### Storage Limits
+- Typically **5-10 MB** per domain
+- Data persists until manually cleared
+- Data is **not synced** across devices
+
+### Export Data
+- Click "📜 Download Log (.txt)" to backup all records
+- Save the file to your computer
+- Can be imported into Excel/Google Sheets
+
+## Privacy & Security
+
+🔒 **Your Data is Safe**
+- ✅ No internet connection required for core functionality
+- ✅ No data sent to external servers
+- ✅ All data stored locally on your device
+- ✅ QR code links to external verification URL only on print
+- ✅ Clear all data anytime with "Reset Log"
+
+## Troubleshooting
+
+### Certificates not printing in color?
+- Check "Background graphics" option in print settings
+- Ensure `-webkit-print-color-adjust: exact` is enabled
+
+### Serial numbers resetting?
+- Clearing browser cache/history may clear localStorage
+- Use "Download Log" to backup before clearing data
+
+### QR code not showing?
+- Check internet connection (QR library loaded from CDN)
+- Verify QRCode.js CDN is accessible
+
+### Datalist suggestions not appearing?
+- Try typing the first few letters
+- Ensure JavaScript is enabled
+- Use an updated browser version
+
+## Version History
+
+### v1.0 (Current)
+- ✅ Basic certificate generation
+- ✅ Serial numbering with persistence
+- ✅ QR code generation
+- ✅ Print logging and download
+- ✅ Dynamic row management
+- ✅ localStorage data storage
+- ✅ Professional styling
+
+## Future Enhancements (Potential)
+
+- 🌍 Multi-language support (Bengali, English, etc.)
+- 📱 Mobile app version
+- ☁️ Cloud backup/sync
+- 📊 Advanced reporting dashboard
+- 🎨 Template customization UI
+- 📧 Email/SMS integration
+- 👥 Multi-user authentication
+- 📈 Analytics and statistics
+
+## Requirements
+
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- JavaScript enabled
+- ~1 MB disk space for HTML file
+- Internet connection (for QR code library only)
+
+## License
+
+This project is created for the Janata Technical Training Institute (JTTC) and Bangladesh Electrician Federation (BEF).
+
+**Government Registration**: B-2202
+
+## Support & Feedback
+
+For issues, feature requests, or improvements:
+1. Check the troubleshooting section above
+2. Verify browser compatibility
+3. Clear cache and try again
+4. Contact the development team
+
+## Credits
+
+**Created by:** Abu Dojana Tahmid
+
+**Developed for:**
+- Janata Technical Training Institute (JTTC)
+- Bangladesh Electrician Federation (BEF)
+
+**Libraries Used:**
+- [QRCode.js](https://davidshimjs.github.io/qrcodejs/) - QR Code generation
+- [Google Fonts](https://fonts.google.com/) - Cinzel & Lato fonts
+
+---
+
+**Last Updated**: December 2025  
+**Status**: Production Ready ✅
