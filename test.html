@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Certificate App (QR Edition)</title>
+    <!-- Importing Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --primary-green: #006a4e;
+            --accent-red: #f42a41;
+            --cursive-font: 'Cinzel', serif;
+            --body-font: 'Lato', sans-serif;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            font-family: var(--body-font);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Control Panel */
+        .controls {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap; /* Added for responsiveness */
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-print { background: var(--primary-green); color: white; }
+        .btn-print:hover { background: #004d38; }
+        
+        .btn-add { background: #007bff; color: white; }
+        .btn-add:hover { background: #0056b3; }
+
+        /* --- NEW BUTTON STYLES --- */
+        .btn-log { background: #555; color: white; }
+        .btn-log:hover { background: #333; }
+        .btn-reset { background: #dc3545; color: white; }
+        .btn-reset:hover { background: #a71d2a; }
+
+        /* Certificate Sheet (A4 Landscape) */
+        .certificate-sheet {
+            width: 297mm;
+            height: 210mm;
+            background: white;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 12mm 15mm; 
+            box-sizing: border-box;
+            border: 10px double var(--primary-green);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- NEW SERIAL NUMBER STYLE --- */
+        .serial-box {
+            position: absolute;
+            top: 15mm;
+            right: 15mm;
+            font-family: 'Lato', sans-serif;
+            font-weight: bold;
+            color: var(--accent-red);
+            font-size: 14px;
+            border: 2px solid var(--accent-red);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Header Area */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-green);
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+        }
+
+        /* Fixed Image Styling */
+        .logo-static {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            /* If you haven't pasted the code yet, this shows a gray box */
+            background-color: #f8f8f8; 
+            border: 1px dashed #ccc;
+        }
+
+        /* Text Styles */
+        .header-text { text-align: center; flex-grow: 1; }
+        .org-name { font-weight: 700; color: var(--primary-green); text-transform: uppercase; font-size: 14px; margin: 2px 0; }
+        .main-title { font-family: var(--cursive-font); font-size: 58px; color: var(--accent-red); margin: 5px 0; line-height: 1; }
+        .reg-no { font-size: 12px; letter-spacing: 2px; color: #555; }
+
+        /* Form Inputs */
+        .input-line {
+            border: none;
+            border-bottom: 1px dotted #333;
+            background: transparent;
+            font-family: var(--cursive-font);
+            font-size: 26px;
+            color: #000;
+            width: 100%;
+            outline: none;
+            padding: 0 5px;
+        }
+
+        .student-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 40px;
+            margin-bottom: 10px;
+        }
+
+        .field-group { display: flex; align-items: baseline; }
+        .label { font-weight: bold; min-width: 130px; font-size: 14px; color: #333; }
+        .full-width { grid-column: 1 / -1; }
+
+        /* Table Styles */
+        .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .comp-table th {
+            background-color: var(--primary-green);
+            color: white;
+            padding: 8px;
+            border: 1px solid #005c44;
+            text-align: left;
+        }
+
+        .comp-table td {
+            border: 1px solid #ccc;
+            padding: 4px;
+        }
+
+        .tbl-input {
+            width: 100%;
+            border: none;
+            padding: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+            background: transparent;
+        }
+        
+        /* Bottom Section - UPDATED LAYOUT */
+        .bottom-section {
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-between; 
+            align-items: flex-end; 
+            padding-bottom: 10px;
+        }
+
+        .sig-box { 
+            text-align: center; 
+            width: 20%; 
+        }
+
+        .sig-line {
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            color: var(--primary-green);
+            white-space: nowrap; 
+        }
+
+        /* QR Box */
+        .qr-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            width: 20%; 
+            margin-bottom: -5px; 
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+        }
+        
+        #qrcode img {
+            width: 125px; /* Increased Size for readability */
+            height: 125px;
+        }
+
+        .delete-btn { background: #ff4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 1; }
+
+        @media print {
+            @page { size: A4 landscape; margin: 0; }
+            body { padding: 0; background: white; -webkit-print-color-adjust: exact; }
+            .controls, .delete-btn { display: none !important; }
+            .certificate-sheet { border: 10px double var(--primary-green) !important; width: 297mm; height: 210mm; box-shadow: none; margin: 0; }
+            .logo-static { border: none; background: transparent; }
+            input, select { background: transparent !important; }
+            
+            /* Explicitly hide the 5th column header in print to match the hidden cells */
+            .comp-table th:nth-child(5) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Control Panel -->
+    <div class="controls">
+        <!-- Changed onclick to handlePrint() -->
+        <button class="btn btn-print" onclick="handlePrint()">🖨️ Print Certificate</button>
+        <button class="btn btn-add" onclick="addRow()">➕ Add Row</button>
+        
+        <!-- NEW LOG BUTTONS -->
+        <button class="btn btn-log" onclick="downloadLog()">📜 Download Log (.txt)</button>
+        <button class="btn btn-reset" onclick="clearLog()">⚠️ Reset Log</button>
+    </div>
+
+    <!-- Certificate Canvas -->
+    <div class="certificate-sheet">
+        
+        <!-- NEW SERIAL NUMBER DISPLAY -->
+        <div class="serial-box" id="serialDisplay">SL No: 001</div>
+
+        <!-- Header -->
+        <div class="header">
+            <!-- INSTRUCTION: Paste your JTTC Base64 string inside the src="" below. -->
+            <img src="" class="logo-static" alt="JTTC Logo">
+
+            <div class="header-text">
+                <div class="org-name">Janata Technical Training Institute (JTTC)</div>
+                <div class="org-name">&</div>
+                <div class="org-name">Bangladesh Electrician Federation (BEF)</div>
+                <h1 class="main-title">Statement of Accomplishment</h1>
+                <div class="reg-no">GOVT REG. NO: B-2202</div>
+            </div>
+
+            <!-- INSTRUCTION: Paste your BEF Base64 string inside the src="" below. -->
+            <img src="" class="logo-static" alt="BEF Logo">
+        </div>
+
+        <!-- Student Details -->
+        <div style="text-align: center; font-family: 'Cinzel', serif; font-size: 24px; margin-bottom: 10px;">
+            This is to Certify that,
+        </div>
+
+        <div class="student-details">
+            <div class="field-group">
+                <span class="label">Name:</span>
+                <!-- Added ID: stuName and oninput event -->
+                <input type="text" id="stuName" class="input-line" value="Md. Rahim Uddin" placeholder="Enter Name" oninput="updatePageTitle()">
+            </div>
+            <div class="field-group">
+                <span class="label">Guardian's Name:</span>
+                <!-- Added ID: stuGuardian -->
+                <input type="text" id="stuGuardian" class="input-line" value="Md. Jamal Uddin" placeholder="Enter Guardian Name">
+            </div>
+            
+            <!-- NEW NID FIELD -->
+            <div class="field-group">
+                <span class="label">NID No:</span>
+                <input type="text" id="stuNID" class="input-line" value="" placeholder="Enter NID Number">
+            </div>
+
+            <div class="field-group full-width">
+                <span class="label">Address:</span>
+                <!-- Added ID: stuAddress -->
+                <input type="text" id="stuAddress" class="input-line" value="123 Example Road, Dhaka" placeholder="Enter Address">
+            </div>
+        </div>
+
+        <div style="font-size: 14px; margin-bottom: 5px; font-style: italic;">
+            S/He acquired the following competency during the training:
+        </div>
+
+        <!-- Dynamic Table -->
+        <table class="comp-table">
+            <thead>
+                <tr>
+                    <th width="15%">Date</th>
+                    <th width="35%">Training / Workshop & Topic</th>
+                    <th width="35%">Competency Outcomes</th>
+                    <!-- UPDATED WIDTH: Changed from 10% to 15% so total is 100% in print -->
+                    <th width="15%">Duration</th>
+                    <th width="5%" class="no-print"></th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Rows added by JS -->
+            </tbody>
+        </table>
+
+        <!-- Bottom Section: Signatures and QR all in ONE row -->
+        <div class="bottom-section">
+            <div class="sig-box">
+                <!-- <img src="trainer_sig.png" height="40"> Use this for signature image -->
+                <br><br>
+                <div class="sig-line">Trainer / Facilitator</div>
+            </div>
+            
+            <div class="sig-box">
+                <br><br>
+                <div class="sig-line">Director / Principal</div>
+            </div>
+
+            <!-- QR Code sits in the middle-right -->
+            <div class="qr-box">
+                <div id="qrcode"></div>
+                <div style="font-size: 9px; color: #555; text-align: center;">Scan to Verify</div>
+            </div>
+
+            <div class="sig-box">
+                <br><br>
+                <div class="sig-line">President</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DATALIST: Course Topics -->
+    <datalist id="topicList">
+        <option value="Electrical Installation and Maintenance, Competency Standard Level 1">
+        <option value="Electrical Installation and Maintenance, Competency Standard Level 2">
+    </datalist>
+
+    <!-- DATALIST: Outcomes (Independent Selection) -->
+    <datalist id="outcomeList">
+        <option value="Level 1 Competency Standards Achieved">
+        <option value="Level 2 Competency Standards Achieved">
+    </datalist>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        const STORAGE_KEY = 'jttc_cert_logs';
+        const COUNTER_KEY = 'jttc_cert_count';
+
+        // --- THE DATABASE ---
+        // Restricted to the 2 requested topics
+        const topicDatabase = {
+            "Electrical Installation and Maintenance, Competency Standard Level 1": { 
+                // outcome: removed to allow independent selection
+                duration: "360 Hours" 
+            },
+            "Electrical Installation and Maintenance, Competency Standard Level 2": { 
+                // outcome: removed to allow independent selection
+                duration: "360 Hours" 
+            }
+        };
+
+        const initialData = [
+            { 
+                date: '2025-12-10', 
+                topic: 'Electrical Installation and Maintenance, Competency Standard Level 1', 
+                outcome: 'Level 1 Competency Standards Achieved', 
+                duration: '360 Hours' 
+            }
+        ];
+
+        // --- QR CODE URL ---
+        // INSTRUCTION: Paste your Google Docs Link inside the quotes below
+        const qrContent = "https://docs.google.com/document/d/your-google-doc-link-here";
+
+        window.onload = function() {
+            // Load Table
+            if(document.getElementById('tableBody').children.length === 0) {
+                initialData.forEach(data => addRow(data));
+            }
+            
+            // Generate QR Code
+            generateQR();
+            
+            // Show Current Serial Number
+            updateSerialDisplay();
+
+            // Set Initial Title
+            updatePageTitle();
+        };
+        
+        // --- KEYBOARD SHORTCUT LISTENER (Fixes Ctrl+P Issue) ---
+        document.addEventListener('keydown', function(event) {
+            // Check for Ctrl+P or Cmd+P
+            if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+                event.preventDefault(); // Stop standard print dialog
+                handlePrint(); // Run our custom print logic instead
+            }
+        });
+
+        // --- LOGIC START ---
+
+        function handlePrint() {
+            // 1. Get Current Counter
+            let count = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
+            count++; // Increment for this print
+            
+            // 2. Format Serial Number (e.g., 005)
+            let serialStr = count.toString().padStart(3, '0');
+            
+            // 3. Gather Data (using new IDs)
+            const name = document.getElementById('stuName') ? document.getElementById('stuName').value : "";
+            const guardian = document.getElementById('stuGuardian') ? document.getElementById('stuGuardian').value : "";
+            const nid = document.getElementById('stuNID') ? document.getElementById('stuNID').value : "";
+            const address = document.getElementById('stuAddress') ? document.getElementById('stuAddress').value : "";
+            
+            // Get Table Rows Data
+            const rows = document.querySelectorAll('#tableBody tr');
+            let trainingData = [];
+            rows.forEach(row => {
+                let date = row.querySelector('input[type="date"]').value;
+                let topic = row.querySelector('.topic-input').value;
+                let outcome = row.querySelector('.outcome-input').value;
+                let duration = row.querySelector('.duration-input').value;
+                trainingData.push(`Date: ${date}, Topic: ${topic}, Outcome: ${outcome}, Duration: ${duration}`);
+            });
+
+            // 4. Create Log Entry Object
+            const logEntry = {
+                serial: serialStr,
+                timestamp: new Date().toLocaleString(),
+                name: name,
+                guardian: guardian,
+                nid: nid,
+                address: address,
+                details: trainingData.join(' | ')
+            };
+
+            // 5. Save to LocalStorage
+            saveLog(logEntry, count);
+
+            // 6. Update UI
+            document.getElementById('serialDisplay').innerText = `SL No: ${serialStr}`;
+
+            // 7. Trigger Print
+            setTimeout(() => {
+                window.print();
+                updateSerialDisplay(); // Show NEXT number
+            }, 500);
+        }
+
+        function saveLog(entry, newCount) {
+            localStorage.setItem(COUNTER_KEY, newCount);
+            let logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            logs.push(entry);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+        }
+
+        function updateSerialDisplay() {
+            let current = parseInt(localStorage.getItem(COUNTER_KEY) || '0');
+            let next = current + 1;
+            document.getElementById('serialDisplay').innerText = `SL No: ${next.toString().padStart(3, '0')}`;
+        }
+
+        function downloadLog() {
+            let logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if(logs.length === 0) {
+                alert("No logs found!");
+                return;
+            }
+
+            let textContent = "JTTC CERTIFICATE PRINT LOG\n=================================\n\n";
+            logs.forEach(log => {
+                textContent += `SL#No: ${log.serial}\n`;
+                textContent += `Printed At: ${log.timestamp}\n`;
+                textContent += `Name: ${log.name}\n`;
+                textContent += `Guardian's Name: ${log.guardian}\n`;
+                textContent += `NID: ${log.nid}\n`;
+                textContent += `Address: ${log.address}\n`;
+                textContent += `Training Details: ${log.details}\n`;
+                textContent += "---------------------------------\n";
+            });
+
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'certificate_log.txt';
+            link.click();
+        }
+
+        function clearLog() {
+            if(confirm("Are you sure? This will delete all print history and reset the Serial Number to 001.")) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(COUNTER_KEY);
+                updateSerialDisplay();
+                alert("Log cleared and Serial Number reset.");
+            }
+        }
+        
+        function generateQR() {
+            document.getElementById("qrcode").innerHTML = "";
+            // High Resolution, but Low Data Density (because it's just a URL)
+            new QRCode(document.getElementById("qrcode"), {
+                text: qrContent,
+                width: 256, 
+                height: 256,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M 
+            });
+        }
+
+        function addRow(data = {}) {
+            const tbody = document.getElementById('tableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="date" class="tbl-input" value="${data.date || ''}"></td>
+                <td>
+                    <input list="topicList" class="tbl-input topic-input" 
+                           placeholder="Select Topic" 
+                           value="${data.topic || ''}"
+                           oninput="autoFillDetails(this)">
+                </td>
+                <td>
+                    <!-- NOW INDEPENDENT: Uses outcomeList -->
+                    <input list="outcomeList" class="tbl-input outcome-input" 
+                           placeholder="Select Outcome" 
+                           value="${data.outcome || ''}">
+                </td>
+                <td><input type="text" class="tbl-input duration-input" placeholder="Duration" value="${data.duration || ''}"></td>
+                <td class="no-print" style="text-align:center;">
+                    <button class="delete-btn" onclick="deleteRow(this)">×</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function autoFillDetails(inputElement) {
+            const selectedTopic = inputElement.value;
+            const data = topicDatabase[selectedTopic];
+            const row = inputElement.closest('tr');
+            // outcomeInput selection removed from here
+            const durationInput = row.querySelector('.duration-input');
+
+            if (data) {
+                // Only fills duration now
+                durationInput.value = data.duration;
+            }
+        }
+
+        function deleteRow(btn) {
+            btn.parentNode.parentNode.remove();
+        }
+
+        // --- NEW FUNCTION: Update Page Title ---
+        function updatePageTitle() {
+            const nameField = document.getElementById('stuName');
+            if (nameField && nameField.value.trim() !== "") {
+                document.title = "Certificate - " + nameField.value;
+            } else {
+                document.title = "Smart Certificate App";
+            }
+        }
+    </script>
+</body>
+</html>
